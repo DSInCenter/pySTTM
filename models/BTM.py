@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    data = __get_data(args.data, args.encoding))
+    data = __get_data(args.data, args.encoding)
     __run_btm(
         corpus=data['processed_text'].str.strip().tolist(),
         labels=data['topic'],

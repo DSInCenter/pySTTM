@@ -1,4 +1,5 @@
 snscrape
+hazm
 bitermplus==0.6.12
 Cython==0.29.30
 joblib==1.1.0
