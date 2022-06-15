@@ -7,6 +7,7 @@ from hazm import word_tokenize, Normalizer, Lemmatizer
 import numpy as np
 import pandas as pd
 import argparse
+from tqdm import tqdm
 
 normalizer = Normalizer().normalize
 lemmatizer = Lemmatizer().lemmatize
@@ -14,7 +15,7 @@ lemmatizer = Lemmatizer().lemmatize
 # Retrieved from https://github.com/kharazi/persian-stopwords
 stopwords = set(open('../stop_words/stop_words.txt', encoding='utf8').read().splitlines())
 # Retrieved from https://github.com/amirshnll/Persian-Swear-Words
-swearing_words = set(open('../stop_words/swearing_words.txt', encoding='utf8').read().splitlines())
+swearing_words = set(open('../stop_words/swear_words.txt', encoding='utf8').read().splitlines())
 
 bad_hashtags = set(['تا_آخوند_کفن_نشود_این_وطن_وطن_نشود',
 'ایران_را_پس_میگیریم',
@@ -328,7 +329,6 @@ def pre_process(text):
     sentence = ''.join(persian_words)
     if (len(sentence) < 20):
       return None
-    normal_sentence = (normalizer, sentence)
     word_tokens = word_tokenize(sentence)
 
     for w in word_tokens:
@@ -344,19 +344,20 @@ def pre_process(text):
 
 
 def main(args):
-    results = {}
-    for topic in hashtags.keys():
-        scraper = Twitter_scraper(
+    df = pd.DataFrame([])
+    for topic in tqdm(hashtags.keys(), desc='Scraping Topics'):
+        scraper = TwitterScraper(
             max_results=args.max_results,
             hashtags=hashtags[topic],
-            lang=args.fa,
+            lang=args.lang,
             until=args.until,
             since=args.since,
             with_replies=args.with_replies,
         )
-        results[topic] = scraper.basic_mode()
-    df = pd.Dataframe(results)
-
+        result = scraper.basic_mode()
+        result['topic'] = topic
+        df = pd.concat([df, result], axis=0)
+    
     # preprocess
     df = df[df['username'].notna()]
     tweets = map(pre_process, df.text)
@@ -370,7 +371,7 @@ def main(args):
     df = df.groupby('topic').apply(lambda x: x.sample( len(x) if len(x) < 10000 else 10000)).reset_index(drop=True)
     df = df.reset_index(drop=True)
 
-    df.to_csv(f"../datasets/twitter_dataset.csv", index=False)
+    df.to_csv("../datasets/twitter_dataset.tsv", index=False, sep='\t')
     print('[ OK ] Dataset created.')
 
 

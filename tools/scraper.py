@@ -162,8 +162,7 @@ class TwitterScraper:
                     print("Morning!")
 
                 return self.crawler(query, error_counter)
-
-        print(f"query: {query} , {e}")
+            print(f"query: {query} , {e}")
 
         # Creating a dataframe from the tweets list above
         tweets_df = pd.DataFrame(
