@@ -2,7 +2,7 @@
 Topic Modeling with NMF
 '''
 
-from Dataset.Dataset import Dataset
+from tools.Dataset import Dataset
 import numpy as np
 
 

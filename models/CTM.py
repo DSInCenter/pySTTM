@@ -1,9 +1,9 @@
 from sklearn.feature_extraction.text import CountVectorizer
 
-from octis.models.model import AbstractModel
-from octis.models.contextualized_topic_models.datasets import dataset
-from octis.models.contextualized_topic_models.models import ctm
-from octis.models.contextualized_topic_models.utils.data_preparation import bert_embeddings_from_list
+from model import AbstractModel
+from contextualized_topic_models.datasets import dataset
+from contextualized_topic_models.models import ctm
+from contextualized_topic_models.utils.data_preparation import bert_embeddings_from_list
 
 import os
 import pickle as pkl
@@ -15,7 +15,7 @@ class CTM(AbstractModel):
                  dropout=0.2, learn_priors=True, batch_size=64, lr=2e-3, momentum=0.99,
                  solver='adam', num_epochs=100, reduce_on_plateau=False, prior_mean=0.0,
                  prior_variance=None, num_layers=2, num_neurons=100, use_partitions=True, num_samples=10,
-                 inference_type="zeroshot", bert_path="", bert_model="bert-base-nli-mean-tokens"):
+                 inference_type="zeroshot", bert_path="", bert_model="m3hrdadfi/bert-zwnj-wnli-mean-tokens"):
         """
         initialization of CTM
         :param num_topics : int, number of topic components, (default 10)
@@ -36,7 +36,7 @@ class CTM(AbstractModel):
         :param reduce_on_plateau : bool, reduce learning rate by 10x on plateau of 10 epochs (default False)
         :param inference_type: the type of the CTM model. It can be "zeroshot" or "combined" (default zeroshot)
         :param bert_path: path to store the document contextualized representations
-        :param bert_model: name of the contextualized model (default: bert-base-nli-mean-tokens).
+        :param bert_model: name of the contextualized model (default: m3hrdadfi/bert-zwnj-wnli-mean-tokens).
         see https://www.sbert.net/docs/pretrained_models.html
         """
 
