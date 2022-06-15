@@ -2,16 +2,19 @@
     This is the function of the scraper that generates a dataset from a list of hashtags.
 """
 
-from scraper import Twitter_scraper
+from scraper import TwitterScraper
 from hazm import word_tokenize, Normalizer, Lemmatizer
 import numpy as np
 import pandas as pd
+import argparse
 
 normalizer = Normalizer().normalize
 lemmatizer = Lemmatizer().lemmatize
 
-stopwords = set(open('/content/drive/MyDrive/twitter/persian.txt', encoding='utf8').read().splitlines())
-swearing_words = set(open('/content/drive/MyDrive/twitter/swearing_words.txt', encoding='utf8').read().splitlines())
+# Retrieved from https://github.com/kharazi/persian-stopwords
+stopwords = set(open('../stop_words/stop_words.txt', encoding='utf8').read().splitlines())
+# Retrieved from https://github.com/amirshnll/Persian-Swear-Words
+swearing_words = set(open('../stop_words/swearing_words.txt', encoding='utf8').read().splitlines())
 
 bad_hashtags = set(['تا_آخوند_کفن_نشود_این_وطن_وطن_نشود',
 'ایران_را_پس_میگیریم',
@@ -340,16 +343,16 @@ def pre_process(text):
     return filtered_stopwords
 
 
-def main():
+def main(args):
     results = {}
     for topic in hashtags.keys():
         scraper = Twitter_scraper(
-            max_results=(2 * (10 ** 4)),
+            max_results=args.max_results,
             hashtags=hashtags[topic],
-            lang="fa",
-            until="2022-02-10",
-            since="2019-06-01",
-            with_replies=False,
+            lang=args.fa,
+            until=args.until,
+            since=args.since,
+            with_replies=args.with_replies,
         )
         results[topic] = scraper.basic_mode()
     df = pd.Dataframe(results)
@@ -363,7 +366,7 @@ def main():
     df = df.reset_index(drop=True)
 
     df = df.drop_duplicates(subset='tweet_id')
-    print('after dupp',df.shape)
+    print('-- Dataframe shape: {}'.format(df.shape))
     df = df.groupby('topic').apply(lambda x: x.sample( len(x) if len(x) < 10000 else 10000)).reset_index(drop=True)
     df = df.reset_index(drop=True)
 
@@ -372,4 +375,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max_results", default=(2 * (10 ** 4)), type=int)
+    parser.add_argument("--lang", default="fa", type=str)
+    parser.add_argument("--until", default="2022-02-10", type=str)
+    parser.add_argument("--since", default="2019-06-01", type=str)
+    parser.add_argument("--with_replies", default=False, type=bool)
+    args = parser.parse_args()
+    print(args)
+    main(args)
