@@ -7,16 +7,20 @@ import numpy as np
 
 
 class NMF:
-    def __init__(self) -> None:
+    def __init__(self, num_topics:int, num_iterations:int=20, stop:float=0.001) -> None:
         '''
-        NMF topic modeling class.\n
-        Attributes:\n
-        -------------
-        tfidf: number_of_docs * number_of_words np.array\n
-        W: number_of_docs * number_of_topics np.array\n
-        H: number_of_topics * number_of_words np.array\n
+        Initialize NMF model
+        Parameters
+        ----------
+        :param num_topics: int, number of topics
+        :param num_iterations: int, number of maximum iterations (default : 20)
+        :param stop: float, stop after reaching the given value (default : 0.001)
         '''
-        pass
+        super().__init__()
+        self.hyperparameters = dict()
+        self.hyperparameters["num_topics"] = num_topics
+        self.hyperparameters["num_iterations"] = num_iterations
+        self.hyperparameters["stop"] = stop
 
     def __calculate_tf(self, dataset) -> np.array:
         _tf = np.zeros((len(dataset.train_corpus), len(dataset.vocab))) # initializing term-frequency matrix
@@ -50,7 +54,7 @@ class NMF:
         denomerator = np.matmul(np.transpose(w), np.matmul(h, np.transpose(w)))
         return np.matmul(h, numerator / denomerator)
 
-    def fit(self, dataset:Dataset, n_topics:int, n_iterations:int=20, stop:float=0.001) -> np.array:
+    def train_model(self, dataset:Dataset) -> np.array:
         '''
         applies NMF for topic modeling on given dataset
         Parameters:\n
@@ -68,12 +72,12 @@ class NMF:
         '''
         self.tfidf = self.__calculate_tfidf(dataset, self.__calculate_tf(dataset))
 
-        self.W = np.random.uniform(0, 1, (len(dataset.train_corpus), n_topics))
-        self.H = np.random.uniform(0, 1, (n_topics, len(dataset.vocab)))
+        self.W = np.random.uniform(0, 1, (len(dataset.train_corpus), self.hyperparameters["num_topics"]))
+        self.H = np.random.uniform(0, 1, (self.hyperparameters["num_topics"], len(dataset.vocab)))
 
-        for _ in range(n_iterations):
+        for _ in range(self.hyperparameters["num_iterations"]):
             loss = self.__frobenius_norm(self.tfidf, self.W, self.H)
-            if loss <= stop:
+            if loss <= self.hyperparameters["stop"]:
                 print('model converged...')
                 return self.W
             self.W = self.__update_w(self.tfidf, self.W, self.H)
