@@ -61,6 +61,7 @@ class Dataset:
                         print(f'{_slice} is not in [train, test, dev]...')
                 else:
                     raise Exception('data file must have at least 2 and at most 3 columns...')
+        return data
 
     def load_vocab(self, path:str, encoding:str) -> None:
         self.vocab = ['UNK']
