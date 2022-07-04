@@ -51,7 +51,7 @@ class Dataset:
                 if len(_) == 3:
                     try:
                         data[f'{_slice}_corpus'].append(_[0])
-                        data[f'{_slice}_corpus'].append(_[2])
+                        data[f'{_slice}_labels'].append(_[2])
                     except Exception:
                         print(f'{_slice} is not in [train, test, dev]...')
                 elif len(_) == 2:
