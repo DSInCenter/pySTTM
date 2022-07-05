@@ -23,7 +23,7 @@ class NMF:
         self.hyperparameters["stop"] = stop
 
     def __calculate_tf(self, dataset) -> np.array:
-        _tf = np.zeros((len(dataset.train_corpus), len(dataset.vocab))) # initializing term-frequency matrix
+        _tf = np.zeros((len(dataset.train_corpus), len(dataset.words_count))) # initializing term-frequency matrix
         tokenized_docs = [doc.split() for doc in dataset.train_corpus]
 
         for i, j in enumerate(tokenized_docs):
