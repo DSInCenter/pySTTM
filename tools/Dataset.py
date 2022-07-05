@@ -23,6 +23,7 @@ class Dataset:
         self.load_vocab(path, encoding) # get vocabulary
         self.wordtoindex = {word: index for index, word in enumerate(self.vocab)}
         self.indextoword = {index: word for word, index in self.wordtoindex.items()}
+        self.count_words()
 
     def initialize_corpus(self, data:dict) -> None:
         self.train_corpus = data['train_corpus']
@@ -70,3 +71,10 @@ class Dataset:
             for line in lines:
                 _ = line.split()
                 self.vocab.append(_[0])
+    
+    def count_words(self):
+        self.words_count = {}
+        for voc in self.vocab:
+            self.words_count[voc] = 0
+            for doc in self.train_corpus:
+                self.words_count[voc] += doc.split().count(voc)

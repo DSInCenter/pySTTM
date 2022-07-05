@@ -29,14 +29,14 @@ class NMF:
         for i, j in enumerate(tokenized_docs):
             for m, n in enumerate(dataset.vocab):
                 if n in j:
-                    _tf[i][dataset.word_to_index(n)] += np.round(j.count(n) / len(j), 3)
+                    _tf[i][dataset.wordtoindex[n]] += np.round(j.count(n) / len(j), 3)
         return _tf
 
     def __calculate_tfidf(self, dataset, tf:np.array) -> np.array :
         N = len(dataset.train_corpus)
         for i in range(tf.shape[0]):
             for j in range(tf.shape[1]):
-                tf[i][j] = tf[i][j] * np.round(np.log((N / dataset.words_count[dataset.index_to_word[j]])), 3)
+                tf[i][j] = tf[i][j] * np.round(np.log((N / dataset.words_count[dataset.indextoword[j]])), 3)
         return tf
     
     def __frobenius_norm(self, v:np.array, w:np.array, h:np.array) -> float:
