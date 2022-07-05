@@ -170,7 +170,7 @@ class LDA(AbstractModel):
 
         if self.id2word is None:
             _corpus = dataset.train_corpus + dataset.test_corpus
-            self.id2word = corpora.Dictionary([doc.split() for doc in _corpus])
+            self.id2word = corpora.Dictionary(_corpus)
 
         if self.id_corpus is None:
             self.id_corpus = [self.id2word.doc2bow(document)

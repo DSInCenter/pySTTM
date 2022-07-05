@@ -26,8 +26,8 @@ class NMF:
         _tf = np.zeros((len(dataset.train_corpus), len(dataset.vocab))) # initializing term-frequency matrix
         tokenized_docs = [doc.split() for doc in dataset.train_corpus]
 
-        for (i, j) in tokenized_docs:
-            for (m, n) in dataset.vocab:
+        for i, j in enumerate(tokenized_docs):
+            for m, n in enumerate(dataset.vocab):
                 if n in j:
                     _tf[i][dataset.word_to_index(n)] += np.round(j.count(n) / len(j), 3)
         return _tf
