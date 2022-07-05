@@ -173,7 +173,7 @@ class LDA(AbstractModel):
             self.id2word = corpora.Dictionary(_corpus)
 
         if self.id_corpus is None:
-            self.id_corpus = [self.id2word.doc2bow(document)
+            self.id_corpus = [self.id2word.doc2bow(document.split())
                               for document in train_corpus]
 
         if "num_topics" not in hyperparams:
