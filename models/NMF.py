@@ -30,6 +30,7 @@ class NMF:
             for m, n in enumerate(dataset.vocab):
                 if n in j:
                     _tf[i][dataset.wordtoindex[n]] += np.round(j.count(n) / len(j), 3)
+
         return _tf
 
     def __calculate_tfidf(self, dataset, tf:np.array) -> np.array :

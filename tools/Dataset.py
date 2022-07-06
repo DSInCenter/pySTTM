@@ -82,3 +82,5 @@ class Dataset:
         for i in list(self.words_count.keys()):
             if self.words_count[i] == 0:
                 del self.words_count[i]
+                del self.indextoword[self.wordtoindex[i]]
+                del self.wordtoindex[i]

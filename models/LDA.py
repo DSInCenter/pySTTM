@@ -207,8 +207,7 @@ class LDA(AbstractModel):
         result["topic-document-matrix"] = self._get_topic_document_matrix()
 
         if self.use_partitions:
-            new_corpus = [self.id2word.doc2bow(
-                document) for document in test_corpus]
+            new_corpus = [self.id2word.doc2bow(document.split()) for document in test_corpus]
             if self.update_with_test:
                 self.trained_model.update(new_corpus)
                 self.id_corpus.extend(new_corpus)
