@@ -74,11 +74,16 @@ class Dataset:
     
     def count_words(self):
         self.words_count = {}
-        for voc in self.vocab:
-            self.words_count[voc] = 0
-            for doc in self.train_corpus:
-                self.words_count[voc] += doc.split().count(voc)
         
+        for doc in self.train_corpus:
+            tokenized = doc.split()
+            for token in tokenized:
+                if token in self.vocab:
+                    try:
+                        self.words_count[token] += 1
+                    except:
+                        self.words_count[token] = 1
+
         for i in list(self.words_count.keys()):
             if self.words_count[i] == 0:
                 del self.words_count[i]

@@ -1,5 +1,5 @@
 from sklearn.metrics import normalized_mutual_info_score
-from model import AbstractModel
+from models.model import AbstractModel
 from tools.Dataset import Dataset
 import numpy as np
 import pandas as pd

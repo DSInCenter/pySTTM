@@ -1,4 +1,4 @@
-from model import AbstractModel
+from models.model import AbstractModel
 import numpy as np
 from gensim.models import nmf
 import gensim.corpora as corpora

@@ -5,7 +5,7 @@ from torch import nn
 from torch.nn import functional as F
 import numpy as np
 
-from octis.models.contextualized_topic_models.networks.inference_network import CombinedInferenceNetwork, ContextualInferenceNetwork
+from models.contextualized_topic_models.networks.inference_network import CombinedInferenceNetwork, ContextualInferenceNetwork
 
 
 class DecoderNetwork(nn.Module):

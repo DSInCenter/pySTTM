@@ -8,8 +8,8 @@ from torch import optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
-from octis.models.contextualized_topic_models.networks.decoding_network import DecoderNetwork
-from octis.models.early_stopping.pytorchtools import EarlyStopping
+from models.contextualized_topic_models.networks.decoding_network import DecoderNetwork
+from models.pytorchtools import EarlyStopping
 
 
 class CTM(object):

@@ -1,9 +1,9 @@
 from sklearn.feature_extraction.text import CountVectorizer
 
-from model import AbstractModel
-from contextualized_topic_models.datasets import dataset
-from contextualized_topic_models.models import ctm
-from contextualized_topic_models.utils.data_preparation import bert_embeddings_from_list
+from models.model import AbstractModel
+from models.contextualized_topic_models.datasets import dataset
+from models.contextualized_topic_models.models import ctm
+from models.contextualized_topic_models.utils.data_preparation import bert_embeddings_from_list
 
 import os
 import pickle as pkl

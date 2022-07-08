@@ -2,7 +2,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import scipy.sparse
 import warnings
-from octis.models.contextualized_topic_models.datasets.dataset import CTMDataset
+from models.contextualized_topic_models.datasets.dataset import CTMDataset
 import os
 import pickle as pkl
 
