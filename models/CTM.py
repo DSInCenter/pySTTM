@@ -80,10 +80,10 @@ class CTM(AbstractModel):
             hyperparameters = {}
 
         self.set_params(hyperparameters)
-        self.vocab = dataset.get_vocabulary()
+        self.vocab = dataset.vocab
 
         if self.use_partitions:
-            train, validation, test = dataset.get_partitioned_corpus(use_validation=True)
+            train, validation, test = dataset.train_corpus, dataset.dev_corpus, dataset.test_corpus
 
             data_corpus_train = [' '.join(i) for i in train]
             data_corpus_test = [' '.join(i) for i in test]
@@ -114,7 +114,7 @@ class CTM(AbstractModel):
             return result
 
         else:
-            data_corpus = [' '.join(i) for i in dataset.get_corpus()]
+            data_corpus = [' '.join(i) for i in dataset.train_corpus()]
             x_train, input_size = self.preprocess(
                 self.vocab, train=data_corpus, bert_train_path=self.hyperparameters['bert_path'] + "_train.pkl",
                 bert_model=self.hyperparameters["bert_model"])
