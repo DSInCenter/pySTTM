@@ -2,10 +2,9 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import scipy.sparse
 import warnings
-from contextualized_topic_models.datasets.dataset import CTMDataset
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.preprocessing import OneHotEncoder
-
+from octis.models.contextualized_topic_models.datasets.dataset import CTMDataset
+import os
+import pickle as pkl
 
 def get_bag_of_words(data, min_length):
     """
@@ -17,159 +16,153 @@ def get_bag_of_words(data, min_length):
     vect = scipy.sparse.csr_matrix(vect)
     return vect
 
-
-def bert_embeddings_from_file(text_file, sbert_model_to_load, batch_size=200, max_seq_length=None):
+def bert_embeddings_from_file(text_file, sbert_model_to_load, batch_size=200):
     """
-    Creates SBERT Embeddings from an input file, assumes one document per line
+    Creates SBERT Embeddings from an input file
     """
-
     model = SentenceTransformer(sbert_model_to_load)
-
-    if max_seq_length is not None:
-        model.max_seq_length = max_seq_length
-
     with open(text_file, encoding="utf-8") as filino:
-        texts = list(map(lambda x: x, filino.readlines()))
+        train_text = list(map(lambda x: x, filino.readlines()))
 
-    check_max_local_length(max_seq_length, texts)
-
-    return np.array(model.encode(texts, show_progress_bar=True, batch_size=batch_size))
+    return np.array(model.encode(train_text, show_progress_bar=True, batch_size=batch_size))
 
 
-def bert_embeddings_from_list(texts, sbert_model_to_load, batch_size=200, max_seq_length=None):
+def bert_embeddings_from_list(texts, sbert_model_to_load="bert-base-nli-mean-tokens", batch_size=100):
     """
     Creates SBERT Embeddings from a list
     """
     model = SentenceTransformer(sbert_model_to_load)
-
-    if max_seq_length is not None:
-        model.max_seq_length = max_seq_length
-
-    check_max_local_length(max_seq_length, texts)
-
     return np.array(model.encode(texts, show_progress_bar=True, batch_size=batch_size))
 
 
-def check_max_local_length(max_seq_length, texts):
-    max_local_length = np.max([len(t.split()) for t in texts])
-    if max_local_length > max_seq_length:
-        warnings.simplefilter('always', DeprecationWarning)
-        warnings.warn(f"the longest document in your collection has {max_local_length} words, the model instead "
-                      f"truncates to {max_seq_length} tokens.")
-
-
-class TopicModelDataPreparation:
-
-    def __init__(self, contextualized_model=None, show_warning=True, max_seq_length=128):
-        self.contextualized_model = contextualized_model
+class QuickText:
+    """
+    Integrated class to handle all the text preprocessing needed
+    """
+    def __init__(self, bert_model, text_for_bow, text_for_bert=None, bert_path=None):
+        """
+        :param bert_model: string, bert model to use
+        :param text_for_bert: list, list of sentences with the unpreprocessed text
+        :param text_for_bow: list, list of sentences with the preprocessed text
+        """
+        self.vocab_dict = {}
         self.vocab = []
-        self.id2token = {}
-        self.vectorizer = None
-        self.label_encoder = None
-        self.show_warning = show_warning
-        self.max_seq_length = max_seq_length
+        self.index_dd = None
+        self.idx2token = None
+        self.bow = None
+        self.bert_model = bert_model
+        self.text_handler = ""
+        self.data_bert = None
+        self.text_for_bow = text_for_bow
 
-    def load(self, contextualized_embeddings, bow_embeddings, id2token, labels=None):
-        return CTMDataset(
-            X_contextual=contextualized_embeddings, X_bow=bow_embeddings, idx2token=id2token, labels=labels)
-
-    def fit(self, text_for_contextual, text_for_bow, labels=None, custom_embeddings=None):
-        """
-        This method fits the vectorizer and gets the embeddings from the contextual model
-
-        :param text_for_contextual: list of unpreprocessed documents to generate the contextualized embeddings
-        :param text_for_bow: list of preprocessed documents for creating the bag-of-words
-        :param custom_embeddings: np.ndarray type object to use custom embeddings (optional).
-        :param labels: list of labels associated with each document (optional).
-        """
-
-        if custom_embeddings is not None:
-            assert len(text_for_contextual) == len(custom_embeddings)
-
-            if text_for_bow is not None:
-                assert len(custom_embeddings) == len(text_for_bow)
-
-            if type(custom_embeddings).__module__ != 'numpy':
-                raise TypeError("contextualized_embeddings must be a numpy.ndarray type object")
-
-        if text_for_bow is not None:
-            assert len(text_for_contextual) == len(text_for_bow)
-
-        if self.contextualized_model is None and custom_embeddings is None:
-            raise Exception("A contextualized model or contextualized embeddings must be defined")
-
-        # TODO: this count vectorizer removes tokens that have len = 1, might be unexpected for the users
-        self.vectorizer = CountVectorizer()
-
-        train_bow_embeddings = self.vectorizer.fit_transform(text_for_bow)
-
-        # if the user is passing custom embeddings we don't need to create the embeddings using the model
-
-        if custom_embeddings is None:
-            train_contextualized_embeddings = bert_embeddings_from_list(
-                text_for_contextual, sbert_model_to_load=self.contextualized_model, max_seq_length=self.max_seq_length)
+        if text_for_bert is not None:
+            self.text_for_bert = text_for_bert
         else:
-            train_contextualized_embeddings = custom_embeddings
-        self.vocab = self.vectorizer.get_feature_names()
-        self.id2token = {k: v for k, v in zip(range(0, len(self.vocab)), self.vocab)}
+            self.text_for_bert = None
+        self.bert_path = bert_path
 
-        if labels:
-            self.label_encoder = OneHotEncoder()
-            encoded_labels = self.label_encoder.fit_transform(np.array([labels]).reshape(-1, 1))
+    def prepare_bow(self):
+        indptr = [0]
+        indices = []
+        data = []
+        vocabulary = {}
+
+        if self.text_for_bow is not None:
+            docs = self.text_for_bow
         else:
-            encoded_labels = None
-        return CTMDataset(
-            X_contextual=train_contextualized_embeddings, X_bow=train_bow_embeddings,
-            idx2token=self.id2token, labels=encoded_labels)
+            docs = self.text_for_bert
 
-    def transform(self, text_for_contextual, text_for_bow=None, custom_embeddings=None, labels=None):
-        """
-        This method create the input for the prediction. Essentially, it creates the embeddings with the contextualized
-        model of choice and with trained vectorizer.
+        for d in docs:
+            for term in d.split():
+                index = vocabulary.setdefault(term, len(vocabulary))
+                indices.append(index)
+                data.append(1)
+            indptr.append(len(indices))
 
-        If text_for_bow is missing, it should be because we are using ZeroShotTM
+        self.vocab_dict = vocabulary
+        self.vocab = list(vocabulary.keys())
 
-        :param text_for_contextual: list of unpreprocessed documents to generate the contextualized embeddings
-        :param text_for_bow: list of preprocessed documents for creating the bag-of-words
-        :param custom_embeddings: np.ndarray type object to use custom embeddings (optional).
-        :param labels: list of labels associated with each document (optional).
-        """
+        warnings.simplefilter('always', DeprecationWarning)
+        if len(self.vocab) > 2000:
+            warnings.warn("The vocab you are using has more than 2000 words, reconstructing high-dimensional vectors requires"
+                          "significantly more training epochs and training samples. "
+                          "Consider reducing the number of vocabulary items. "
+                          "See https://github.com/MilaNLProc/contextualized-topic-models#preprocessing "
+                          "and https://github.com/MilaNLProc/contextualized-topic-models#tldr", Warning)
 
-        if custom_embeddings is not None:
-            assert len(text_for_contextual) == len(custom_embeddings)
+        self.idx2token = {v: k for (k, v) in self.vocab_dict.items()}
+        self.bow = scipy.sparse.csr_matrix((data, indices, indptr), dtype=int)
 
-            if text_for_bow is not None:
-                assert len(custom_embeddings) == len(text_for_bow)
+    def load_contextualized_embeddings(self, embeddings):
+        self.data_bert = embeddings
 
-        if text_for_bow is not None:
-            assert len(text_for_contextual) == len(text_for_bow)
-
-        if self.contextualized_model is None:
-            raise Exception("You should define a contextualized model if you want to create the embeddings")
-
-        if text_for_bow is not None:
-            test_bow_embeddings = self.vectorizer.transform(text_for_bow)
+    def load_dataset(self):
+        self.prepare_bow()
+        if self.bert_path is not None:
+            if os.path.exists(self.bert_path):
+                self.data_bert = pkl.load(open(self.bert_path, 'r'))
         else:
-            # dummy matrix
-            if self.show_warning:
-                warnings.simplefilter('always', DeprecationWarning)
-                warnings.warn(
-                    "The method did not have in input the text_for_bow parameter. This IS EXPECTED if you "
-                    "are using ZeroShotTM in a cross-lingual setting")
+            if self.data_bert is None:
+                if self.text_for_bert is not None:
+                    self.data_bert = bert_embeddings_from_list(self.text_for_bert, self.bert_model)
+                else:
+                    self.data_bert = bert_embeddings_from_list(self.text_for_bow, self.bert_model)
+                pkl.dump(self.data_bert, open(self.bert_path, 'w'))
 
-            # we just need an object that is matrix-like so that pytorch does not complain
-            test_bow_embeddings = scipy.sparse.csr_matrix(np.zeros((len(text_for_contextual), 1)))
+        training_dataset = CTMDataset(self.bow, self.data_bert, self.idx2token)
+        return training_dataset
 
-        if custom_embeddings is None:
-            test_contextualized_embeddings = bert_embeddings_from_list(
-                text_for_contextual, sbert_model_to_load=self.contextualized_model, max_seq_length=self.max_seq_length)
+class TextHandler:
+    """
+    Class used to handle the text preparation and the BagOfWord
+    """
+    def __init__(self, file_name=None, sentences=None):
+        self.file_name = file_name
+        self.sentences = sentences
+        self.vocab_dict = {}
+        self.vocab = []
+        self.index_dd = None
+        self.idx2token = None
+        self.bow = None
+
+        warnings.simplefilter('always', DeprecationWarning)
+        if len(self.vocab) > 2000:
+            warnings.warn("TextHandler class is deprecated and will be removed in version 2.0. Use QuickText.", Warning)
+
+    def prepare(self):
+        indptr = [0]
+        indices = []
+        data = []
+        vocabulary = {}
+
+        if self.sentences is None and self.file_name is None:
+            raise Exception("Sentences and file_names cannot both be none")
+
+        if self.sentences is not None:
+            docs = self.sentences
+        elif self.file_name is not None:
+            with open(self.file_name, encoding="utf-8") as filino:
+                docs = filino.readlines()
         else:
-            test_contextualized_embeddings = custom_embeddings
+            raise Exception("One parameter between sentences and file_name should be selected")
 
-        if labels:
-            encoded_labels = self.label_encoder.transform(np.array([labels]).reshape(-1, 1))
-        else:
-            encoded_labels = None
+        for d in docs:
+            for term in d.split():
+                index = vocabulary.setdefault(term, len(vocabulary))
+                indices.append(index)
+                data.append(1)
+            indptr.append(len(indices))
 
-        return CTMDataset(X_contextual=test_contextualized_embeddings, X_bow=test_bow_embeddings,
-                          idx2token=self.id2token, labels=encoded_labels)
+        self.vocab_dict = vocabulary
+        self.vocab = list(vocabulary.keys())
+
+        warnings.simplefilter('always', DeprecationWarning)
+        if len(self.vocab) > 2000:
+            warnings.warn("The vocab you are using has more than 2000 words, reconstructing high-dimensional vectors requires"
+                          "significantly more training epochs and training samples. "
+                          "Consider reducing the number of vocabulary items. "
+                          "See https://github.com/MilaNLProc/contextualized-topic-models#preprocessing "
+                          "and https://github.com/MilaNLProc/contextualized-topic-models#tldr", Warning)
+
+        self.idx2token = {v: k for (k, v) in self.vocab_dict.items()}
+        self.bow = scipy.sparse.csr_matrix((data, indices, indptr), dtype=int)

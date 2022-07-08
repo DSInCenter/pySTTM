@@ -1,16 +1,17 @@
+"""PyTorch class for feed foward inference network."""
+
 from collections import OrderedDict
 from torch import nn
 import torch
-
+import numpy as np
 
 class ContextualInferenceNetwork(nn.Module):
 
     """Inference Network."""
 
     def __init__(self, input_size, bert_size, output_size, hidden_sizes,
-                 activation='softplus', dropout=0.2, label_size=0):
+                 activation='softplus', dropout=0.2):
         """
-        # TODO: check dropout in main caller
         Initialize InferenceNetwork.
 
         Args
@@ -25,8 +26,10 @@ class ContextualInferenceNetwork(nn.Module):
         assert isinstance(output_size, int), "output_size must be type int."
         assert isinstance(hidden_sizes, tuple), \
             "hidden_sizes must be type tuple."
-        assert activation in ['softplus', 'relu'], \
-            "activation must be 'softplus' or 'relu'."
+        assert activation in ['softplus', 'relu', 'sigmoid', 'tanh', 'leakyrelu',
+                              'rrelu', 'elu', 'selu'], \
+            "activation must be 'softplus', 'relu', 'sigmoid', 'leakyrelu'," \
+            " 'rrelu', 'elu', 'selu' or 'tanh'."
         assert dropout >= 0, "dropout must be >= 0."
 
         self.input_size = input_size
@@ -38,9 +41,21 @@ class ContextualInferenceNetwork(nn.Module):
             self.activation = nn.Softplus()
         elif activation == 'relu':
             self.activation = nn.ReLU()
+        elif activation == 'sigmoid':
+            self.activation = nn.Sigmoid()
+        elif activation == 'tanh':
+            self.activation = nn.Tanh()
+        elif activation == 'leakyrelu':
+            self.activation = nn.LeakyReLU()
+        elif activation == 'rrelu':
+            self.activation = nn.RReLU()
+        elif activation == 'elu':
+            self.activation = nn.ELU()
+        elif activation == 'selu':
+            self.activation = nn.SELU()
 
-        self.input_layer = nn.Linear(bert_size + label_size, hidden_sizes[0])
-        #self.adapt_bert = nn.Linear(bert_size, hidden_sizes[0])
+        self.input_layer = nn.Linear(input_size+input_size, hidden_sizes[0])
+        self.adapt_bert = nn.Linear(bert_size, hidden_sizes[0])
 
         self.hiddens = nn.Sequential(OrderedDict([
             ('l_{}'.format(i), nn.Sequential(nn.Linear(h_in, h_out), self.activation))
@@ -54,16 +69,11 @@ class ContextualInferenceNetwork(nn.Module):
 
         self.dropout_enc = nn.Dropout(p=self.dropout)
 
-    def forward(self, x, x_bert, labels=None):
+    def forward(self, x, x_bert):
         """Forward pass."""
+        x_bert = self.adapt_bert(x_bert)
 
-        x = x_bert
-        if labels:
-            x = torch.cat((x_bert, labels), 1)
-
-        x = self.input_layer(x)
-
-        x = self.activation(x)
+        x = self.activation(x_bert)
         x = self.hiddens(x)
         x = self.dropout_enc(x)
         mu = self.f_mu_batchnorm(self.f_mu(x))
@@ -77,7 +87,7 @@ class CombinedInferenceNetwork(nn.Module):
     """Inference Network."""
 
     def __init__(self, input_size, bert_size, output_size, hidden_sizes,
-                 activation='softplus', dropout=0.2, label_size=0):
+                 activation='softplus', dropout=0.2):
         """
         Initialize InferenceNetwork.
 
@@ -90,11 +100,14 @@ class CombinedInferenceNetwork(nn.Module):
         """
         super(CombinedInferenceNetwork, self).__init__()
         assert isinstance(input_size, int), "input_size must by type int."
-        assert isinstance(output_size, int), "output_size must be type int."
+        assert (isinstance(output_size, int) or isinstance(output_size, np.int64)), "output_size must be type int."
         assert isinstance(hidden_sizes, tuple), \
             "hidden_sizes must be type tuple."
-        assert activation in ['softplus', 'relu'], \
-            "activation must be 'softplus' or 'relu'."
+        assert activation in ['softplus', 'relu', 'sigmoid', 'tanh', 'leakyrelu',
+                              'rrelu', 'elu', 'selu'], \
+            "activation must be 'softplus', 'relu', 'sigmoid', 'leakyrelu'," \
+            " 'rrelu', 'elu', 'selu' or 'tanh'."
+
         assert dropout >= 0, "dropout must be >= 0."
 
         self.input_size = input_size
@@ -106,11 +119,22 @@ class CombinedInferenceNetwork(nn.Module):
             self.activation = nn.Softplus()
         elif activation == 'relu':
             self.activation = nn.ReLU()
+        elif activation == 'sigmoid':
+            self.activation = nn.Sigmoid()
+        elif activation == 'tanh':
+            self.activation = nn.Tanh()
+        elif activation == 'leakyrelu':
+            self.activation = nn.LeakyReLU()
+        elif activation == 'rrelu':
+            self.activation = nn.RReLU()
+        elif activation == 'elu':
+            self.activation = nn.ELU()
+        elif activation == 'selu':
+            self.activation = nn.SELU()
 
-
+        self.input_layer = nn.Linear(input_size+input_size, hidden_sizes[0])
         self.adapt_bert = nn.Linear(bert_size, input_size)
-        #self.bert_layer = nn.Linear(hidden_sizes[0], hidden_sizes[0])
-        self.input_layer = nn.Linear(input_size + input_size + label_size, hidden_sizes[0])
+        self.bert_layer = nn.Linear(hidden_sizes[0], hidden_sizes[0])
 
         self.hiddens = nn.Sequential(OrderedDict([
             ('l_{}'.format(i), nn.Sequential(nn.Linear(h_in, h_out), self.activation))
@@ -124,15 +148,10 @@ class CombinedInferenceNetwork(nn.Module):
 
         self.dropout_enc = nn.Dropout(p=self.dropout)
 
-    def forward(self, x, x_bert, labels=None):
+    def forward(self, x, x_bert):
         """Forward pass."""
         x_bert = self.adapt_bert(x_bert)
-
         x = torch.cat((x, x_bert), 1)
-
-        if labels is not None:
-            x = torch.cat((x, labels), 1)
-
         x = self.input_layer(x)
 
         x = self.activation(x)
