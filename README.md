@@ -1,4 +1,4 @@
-#Topic Modeling Tool for Persian Short Texts
+# Topic Modeling Tool for Persian Short Texts
 
 The tool for topic modeling provided by the **Data Science Innovation Center** extracts topics from **digitized Persian texts** and compares their performance in short texts using a variety of topic modeling techniques.
 
