@@ -1,8 +1,8 @@
 # Topic Modeling Tool for Persian Short Texts
 
-The tool for topic modeling provided by the **Data Science Innovation Center** extracts topics from **digitized Persian texts** and compares their performance in short texts using a variety of topic modeling techniques.
+The tool for topic modeling provided by the **Data Science Innovation Center** extracts topics from digitized **Persian texts** and compares their performance in short texts using a variety of topic modeling techniques.
 
-Visit the **[website]([https://www.sbert.net](http://dslab.aut.ac.ir/fa/products/%d9%be%d8%b1%d8%af%d8%a7%d8%b2%d8%b4-%d9%85%d8%aa%d9%86-%d9%88-%d8%b2%d8%a8%d8%a7%d9%86-%d8%b7%d8%a8%db%8c%d8%b9%db%8c/%d8%a7%d8%a8%d8%b2%d8%a7%d8%b1-%d8%af%d8%b3%d8%aa%d9%87-%d8%a8%d9%86%d8%af%db%8c-%d9%85%d9%88%d8%b6%d9%88%d8%b9%db%8c/))** to view the description in Persian.
+Visit the **[website](http://dslab.aut.ac.ir/fa/products/%d9%be%d8%b1%d8%af%d8%a7%d8%b2%d8%b4-%d9%85%d8%aa%d9%86-%d9%88-%d8%b2%d8%a8%d8%a7%d9%86-%d8%b7%d8%a8%db%8c%d8%b9%db%8c/%d8%a7%d8%a8%d8%b2%d8%a7%d8%b1-%d8%af%d8%b3%d8%aa%d9%87-%d8%a8%d9%86%d8%af%db%8c-%d9%85%d9%88%d8%b6%d9%88%d8%b9%db%8c/)** to view the description in Persian.
 
 ## Installation
 We recommend **Python 3.6** or higher, **[gensim 4.2](https://radimrehurek.com/gensim/)** or higher.
@@ -23,6 +23,7 @@ These examples demonstrate how to clone and execute a model on Google Colab:
 - [Run LDA model on Google colab](https://colab.research.google.com/drive/1yhNeh6J177fSQxEZE7OTLJMWtvff7LDA?usp=sharing) 
 
 **LDA demonstration**:
+
 First, import Dataset Class from Dataset.py and import LDA model from LDA.py:
 ````python
 from tools.Dataset import Dataset
