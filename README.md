@@ -1,6 +1,6 @@
 # Topic Modeling Tool for Persian Short Texts
 
-The tool for topic modeling provided by the **Data Science Innovation Center** extracts topics from digitized **Persian texts** and compares their performance in short texts using a variety of topic modeling techniques.
+The tool for topic modeling provided by the **[Data Science Innovation Center](http://dslab.aut.ac.ir/fa/)** extracts topics from digitized **Persian texts** and compares their performance in short texts using a variety of topic modeling techniques.
 
 Visit the **[website](http://dslab.aut.ac.ir/fa/products/%d9%be%d8%b1%d8%af%d8%a7%d8%b2%d8%b4-%d9%85%d8%aa%d9%86-%d9%88-%d8%b2%d8%a8%d8%a7%d9%86-%d8%b7%d8%a8%db%8c%d8%b9%db%8c/%d8%a7%d8%a8%d8%b2%d8%a7%d8%b1-%d8%af%d8%b3%d8%aa%d9%87-%d8%a8%d9%86%d8%af%db%8c-%d9%85%d9%88%d8%b6%d9%88%d8%b9%db%8c/)** to view the description in Persian.
 
