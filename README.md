@@ -18,6 +18,9 @@ pip install -r requirements.txt
 ```
 
 ## Getting Started
+To get started, you can see the demo of GSDMM's algorithm in this link:
+- [GSDMM demo]([https://colab.research.google.com/drive/1l7Fs6yYrbIy9fXyTBflMXGaVQjh10RPn?usp=sharing](https://dsic-topic-model.herokuapp.com/))
+- 
 These examples demonstrate how to clone and execute a model on Google Colab:
 - [Run NMF model on Google colab](https://colab.research.google.com/drive/1l7Fs6yYrbIy9fXyTBflMXGaVQjh10RPn?usp=sharing)
 - [Run LDA model on Google colab](https://colab.research.google.com/drive/1yhNeh6J177fSQxEZE7OTLJMWtvff7LDA?usp=sharing) 
