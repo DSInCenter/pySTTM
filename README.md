@@ -45,7 +45,10 @@ print(lda_result)
 If you find this repository helpful, feel free to cite this work []():
 
 ```bibtex 
-@inproceedings{
+@article{karimi2023comparative,
+  title={Comparative Analysis of Topic Modeling Algorithms for Short Texts in Persian Tweets},
+  author={Karimi, Amir Hossein and Akbari, Masoud and Akbari, Mohammad},
+  year={2023}
 }
 ```
 
